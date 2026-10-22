@@ -11,6 +11,11 @@
                     Kursy
                 </a>
             </li>
+            <li class="nav-item mb-1">
+    <a class="nav-link {{ request()->routeIs('admin.vehicles.*') ? 'active text-primary fw-bold' : 'text-dark' }}" href="{{ route('admin.vehicles.index') }}">
+        Pojazdy
+    </a>
+</li>
         </ul>
     </div>
 </nav>

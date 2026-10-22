@@ -28,7 +28,7 @@ class StoreCourseRequest extends FormRequest
         return [
             'category' => ['required', 'in:A,B,C'],
             'type' => ['required', 'in:standard,accelerated,weekend'],
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:100'],
             'start_date' => ['nullable', 'date'],
             'required_theory_hours' => ['required', 'integer', 'min:' . $minTheory, 'max:100'],
             'required_practice_hours' => ['required', 'integer', 'min:' . $minPractice, 'max:100'],

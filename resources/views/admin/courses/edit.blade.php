@@ -46,13 +46,13 @@
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <label for="required_theory_hours" class="form-label">Wymagane godziny teorii <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control @error('required_theory_hours') is-invalid @enderror" id="required_theory_hours" name="required_theory_hours" value="{{ old('required_theory_hours', $course->required_theory_hours) }}" required min="0" max="100">
+                        <input type="number" class="form-control @error('required_theory_hours') is-invalid @enderror" id="required_theory_hours" name="required_theory_hours" value="{{ old('required_theory_hours', $course->required_theory_hours) }}" required max="100">
                         @error('required_theory_hours') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="col-md-6 mt-3 mt-md-0">
                         <label for="required_practice_hours" class="form-label">Wymagane godziny praktyki <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control @error('required_practice_hours') is-invalid @enderror" id="required_practice_hours" name="required_practice_hours" value="{{ old('required_practice_hours', $course->required_practice_hours) }}" required min="0" max="100">
+                        <input type="number" class="form-control @error('required_practice_hours') is-invalid @enderror" id="required_practice_hours" name="required_practice_hours" value="{{ old('required_practice_hours', $course->required_practice_hours) }}" required max="100">
                         @error('required_practice_hours') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
@@ -64,4 +64,37 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categorySelect = document.getElementById('category');
+            const theoryInput = document.getElementById('required_theory_hours');
+            const practiceInput = document.getElementById('required_practice_hours');
+
+            function updateMinHours() {
+                const category = categorySelect.value;
+                let minTheory = 30;
+                let minPractice = 30;
+
+                if (category === 'A') {
+                    minPractice = 20;
+                } else if (category === 'C') {
+                    minTheory = 20;
+                }
+
+                theoryInput.min = minTheory;
+                practiceInput.min = minPractice;
+
+                if (theoryInput.value && parseInt(theoryInput.value) < minTheory) {
+                    theoryInput.value = minTheory;
+                }
+                if (practiceInput.value && parseInt(practiceInput.value) < minPractice) {
+                    practiceInput.value = minPractice;
+                }
+            }
+
+            categorySelect.addEventListener('change', updateMinHours);
+            updateMinHours();
+        });
+    </script>
 </x-app-layout>
