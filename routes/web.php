@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('courses', App\Http\Controllers\Admin\CourseController::class);
     Route::resource('vehicles', App\Http\Controllers\Admin\VehicleController::class);
+    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
 });
 
 require __DIR__.'/auth.php';
