@@ -22,6 +22,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('vehicles', App\Http\Controllers\Admin\VehicleController::class);
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::resource('enrollments', App\Http\Controllers\Admin\EnrollmentController::class);
+    Route::resource('lessons', App\Http\Controllers\Admin\LessonController::class);
 });
 
 require __DIR__.'/auth.php';
