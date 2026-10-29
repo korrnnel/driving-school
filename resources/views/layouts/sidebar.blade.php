@@ -25,6 +25,11 @@
                     Użytkownicy
                 </a>
             </li>
+            <li class="nav-item mb-1">
+    <a class="nav-link {{ request()->routeIs('admin.enrollments.*') ? 'active text-primary fw-bold' : 'text-dark' }}" href="{{ route('admin.enrollments.index') }}">
+        Zapisy na kursy
+    </a>
+</li>
         </ul>
     </div>
 </nav>
