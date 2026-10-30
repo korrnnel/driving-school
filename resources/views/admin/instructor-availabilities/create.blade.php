@@ -1,0 +1,49 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="h4 mb-0">Dodaj godziny pracy instruktora</h2>
+    </x-slot>
+
+    <div class="card shadow-sm max-w-2xl mx-auto">
+        <div class="card-body">
+            <form action="{{ route('admin.instructor-availabilities.store') }}" method="POST">
+                @csrf
+
+                <div class="mb-3">
+                    <label for="instructor_id" class="form-label">Instruktor <span class="text-danger">*</span></label>
+                    <select class="form-select @error('instructor_id') is-invalid @enderror" id="instructor_id" name="instructor_id" required>
+                        <option value="">Wybierz instruktora...</option>
+                        @foreach($instructors as $instructor)
+                            <option value="{{ $instructor->id }}" {{ old('instructor_id') == $instructor->id ? 'selected' : '' }}>
+                                {{ $instructor->surname }} {{ $instructor->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('instructor_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label for="date" class="form-label">Data <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control @error('date') is-invalid @enderror" id="date" name="date" value="{{ old('date', \Carbon\Carbon::tomorrow()->format('Y-m-d')) }}" required>
+                        @error('date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-4 mt-3 mt-md-0">
+                        <label for="start_time" class="form-label">Od godziny <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control @error('start_time') is-invalid @enderror" id="start_time" name="start_time" value="{{ old('start_time', '08:00') }}" required>
+                        @error('start_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-4 mt-3 mt-md-0">
+                        <label for="end_time" class="form-label">Do godziny <span class="text-danger">*</span></label>
+                        <input type="time" class="form-control @error('end_time') is-invalid @enderror" id="end_time" name="end_time" value="{{ old('end_time', '16:00') }}" required>
+                        @error('end_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ route('admin.instructor-availabilities.index') }}" class="btn btn-secondary">Anuluj</a>
+                    <button type="submit" class="btn btn-primary">Zapisz grafik</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</x-app-layout>
