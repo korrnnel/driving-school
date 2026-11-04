@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Lesson;
 use App\Models\Enrollment;
 use App\Models\Vehicle;
+use App\Models\InstructorAvailability;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -36,11 +37,12 @@ class StoreLessonRequest extends FormRequest
         ];
     }
 
-   public function after(): array
+    public function after(): array
     {
         return [
             function (Validator $validator) {
                 if ($this->start_time && $this->end_time && $this->date && $this->instructor_id) {
+
                     $instructorOverlap = Lesson::where('instructor_id', $this->instructor_id)
                         ->where('date', $this->date)
                         ->where('start_time', '<', $this->end_time)
@@ -49,6 +51,16 @@ class StoreLessonRequest extends FormRequest
 
                     if ($instructorOverlap) {
                         $validator->errors()->add('start_time', 'Ten instruktor ma już zaplanowaną jazdę w tych godzinach.');
+                    }
+
+                    $isAvailable = InstructorAvailability::where('instructor_id', $this->instructor_id)
+                        ->where('date', $this->date)
+                        ->where('start_time', '<=', $this->start_time)
+                        ->where('end_time', '>=', $this->end_time)
+                        ->exists();
+
+                    if (!$isAvailable) {
+                        $validator->errors()->add('start_time', 'Instruktor nie pracuje w tych godzinach (sprawdź zakładkę Grafik Instruktorów).');
                     }
                 }
 
@@ -63,7 +75,21 @@ class StoreLessonRequest extends FormRequest
                         $validator->errors()->add('vehicle_id', 'Ten pojazd jest już zarezerwowany na inną jazdę w tych godzinach.');
                     }
                 }
+ if ($this->start_time && $this->end_time && $this->date && $this->enrollment_id) {
+                    $enrollment = Enrollment::find($this->enrollment_id);
 
+                    if ($enrollment) {
+                        $studentOverlap = Lesson::where('booked_by_id', $enrollment->user_id)
+                            ->where('date', $this->date)
+                            ->where('start_time', '<', $this->end_time)
+                            ->where('end_time', '>', $this->start_time)
+                            ->exists();
+
+                        if ($studentOverlap) {
+                            $validator->errors()->add('enrollment_id', 'Ten kursant ma już zaplanowaną jazdę w tych godzinach.');
+                        }
+                    }
+                }
                 if ($this->enrollment_id && $this->vehicle_id) {
                     $enrollment = Enrollment::with('course')->find($this->enrollment_id);
                     $vehicle = Vehicle::find($this->vehicle_id);
