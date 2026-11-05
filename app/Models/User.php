@@ -32,7 +32,7 @@ class User extends Authenticatable
 
     public function assignedVehicle(): BelongsTo
     {
-        return $this->belongsTo(Vehicle::class, 'assigned_vehicle_id');
+        return $this->belongsTo(Vehicle::class, 'assigned_vehicle_id')->withTrashed();
     }
 
     public function enrollments(): HasMany

@@ -29,16 +29,16 @@ class Lesson extends Model
 
     public function instructor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'instructor_id');
+        return $this->belongsTo(User::class, 'instructor_id')->withTrashed();
     }
 
     public function vehicle(): BelongsTo
     {
-        return $this->belongsTo(Vehicle::class);
+        return $this->belongsTo(Vehicle::class)->withTrashed();
     }
 
     public function student(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'booked_by_id');
+        return $this->belongsTo(User::class, 'booked_by_id')->withTrashed();
     }
 }

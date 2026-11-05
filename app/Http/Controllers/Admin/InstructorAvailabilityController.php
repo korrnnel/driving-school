@@ -44,7 +44,15 @@ class InstructorAvailabilityController extends Controller
 
     public function edit(InstructorAvailability $instructorAvailability): View
     {
-        $instructors = User::where('role', 'instructor')->orderBy('surname')->get();
+        $instructors = User::withTrashed()
+            ->where('role', 'instructor')
+            ->where(function($query) use ($instructorAvailability) {
+                $query->whereNull('deleted_at')
+                      ->orWhere('id', $instructorAvailability->instructor_id);
+            })
+            ->orderBy('surname')
+            ->get();
+
         return view('admin.instructor-availabilities.edit', compact('instructorAvailability', 'instructors'));
     }
 

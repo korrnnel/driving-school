@@ -26,7 +26,17 @@ class LessonController extends Controller
 
     public function create(): View
     {
-        $enrollments = Enrollment::with(['user', 'course'])->where('status', 'in_progress')->get();
+        $enrollments = Enrollment::where(function($q) {
+                $q->whereHas('user', function($query) {
+                    $query->whereNull('deleted_at');
+                })->whereHas('course', function($query) {
+                    $query->whereNull('deleted_at');
+                });
+            })
+            ->with(['user', 'course'])
+            ->where('status', 'in_progress')
+            ->get();
+
         $instructors = User::where('role', 'instructor')->with('assignedVehicle')->orderBy('surname')->get();
         $vehicles = Vehicle::orderBy('brand')->get();
 
@@ -55,7 +65,17 @@ class LessonController extends Controller
 
     public function edit(Lesson $lesson): View
     {
-        $enrollments = Enrollment::with(['user', 'course'])->get();
+        $enrollments = Enrollment::where(function($q) {
+                $q->whereHas('user', function($query) {
+                    $query->whereNull('deleted_at');
+                })->whereHas('course', function($query) {
+                    $query->whereNull('deleted_at');
+                });
+            })
+            ->orWhere('id', $lesson->enrollment_id)
+            ->with(['user', 'course'])
+            ->get();
+
         $instructors = User::where('role', 'instructor')->with('assignedVehicle')->orderBy('surname')->get();
         $vehicles = Vehicle::orderBy('brand')->get();
 

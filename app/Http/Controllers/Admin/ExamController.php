@@ -24,7 +24,16 @@ class ExamController extends Controller
 
     public function create(): View
     {
-        $enrollments = Enrollment::with(['user', 'course'])->get();
+
+        $enrollments = Enrollment::whereHas('user', function($query) {
+                $query->whereNull('deleted_at');
+            })
+            ->whereHas('course', function($query) {
+                $query->whereNull('deleted_at');
+            })
+            ->with(['user', 'course'])
+            ->get();
+
         $instructors = User::where('role', 'instructor')->orderBy('surname')->get();
 
         return view('admin.exams.create', compact('enrollments', 'instructors'));
@@ -52,7 +61,17 @@ class ExamController extends Controller
 
     public function edit(Exam $exam): View
     {
-        $enrollments = Enrollment::with(['user', 'course'])->get();
+        $enrollments = Enrollment::where(function($q) {
+                $q->whereHas('user', function($query) {
+                    $query->whereNull('deleted_at');
+                })->whereHas('course', function($query) {
+                    $query->whereNull('deleted_at');
+                });
+            })
+            ->orWhere('id', $exam->enrollment_id)
+            ->with(['user', 'course'])
+            ->get();
+
         $instructors = User::where('role', 'instructor')->orderBy('surname')->get();
 
         return view('admin.exams.edit', compact('exam', 'enrollments', 'instructors'));

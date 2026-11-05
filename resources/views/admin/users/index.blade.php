@@ -58,7 +58,7 @@
                                     @if($user->role === 'instructor')
                                         <div>Upraw: <span class="font-monospace">{{ $user->license_number }}</span></div>
                                         @if($user->assignedVehicle)
-                                            <small class="text-muted">Auto: {{ $user->assignedVehicle->registration_number }}</small>
+                                            <small class="text-muted">Pojazd: {{ $user->assignedVehicle->registration_number }}</small>
                                         @else
                                             <small class="text-danger">Brak pojazdu</small>
                                         @endif

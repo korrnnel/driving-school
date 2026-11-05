@@ -22,14 +22,14 @@ class Enrollment extends Model
         'enrolled_at' => 'datetime',
     ];
 
-    public function user(): BelongsTo
+   public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     public function course(): BelongsTo
     {
-        return $this->belongsTo(Course::class);
+        return $this->belongsTo(Course::class)->withTrashed();
     }
 
     public function lessons(): HasMany

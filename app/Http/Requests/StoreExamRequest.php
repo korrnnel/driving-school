@@ -21,7 +21,7 @@ class StoreExamRequest extends FormRequest
             'type' => ['required', 'in:internal,state'],
             'category' => ['required', 'in:theory,practice'],
             'result' => ['required', 'in:passed,failed'],
-            'date' => ['required', 'date'],
+            'date' => ['required', 'date', 'before_or_equal:today'],
             'instructor_id' => [
                 'nullable',
                 Rule::requiredIf(fn () => $this->type === 'internal' && $this->category === 'practice'),
@@ -54,6 +54,7 @@ class StoreExamRequest extends FormRequest
     {
         return [
             'instructor_id.required' => 'Egzamin wewnętrzny z praktyki musi mieć przypisanego instruktora.',
+            'date.before_or_equal' => 'Data egzaminu nie może być z przyszłości.',
         ];
     }
 }

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
@@ -76,16 +77,21 @@ class UserController extends Controller
             ->with('success', 'Dane użytkownika zostały pomyślnie zaktualizowane.');
     }
 
-    public function destroy(User $user)
+    public function destroy(User $user): RedirectResponse
     {
         if (Auth::id() === $user->id) {
             return redirect()->route('admin.users.index')
                 ->with('error', 'Nie możesz usunąć własnego konta!');
         }
 
+        if ($user->assigned_vehicle_id) {
+            $user->update(['assigned_vehicle_id' => null]);
+        }
+
         $user->delete();
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'Użytkownik został pomyślnie usunięty.');
+            ->with('success', 'Użytkownik został pomyślnie usunięty, a jego ewentualny pojazd wrócił do puli wolnych aut.');
+
     }
 }

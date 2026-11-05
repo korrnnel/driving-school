@@ -21,7 +21,7 @@ class UpdateExamRequest extends FormRequest
             'type' => ['required', 'in:internal,state'],
             'category' => ['required', 'in:theory,practice'],
             'result' => ['required', 'in:passed,failed'],
-            'date' => ['required', 'date'],
+            'date' => ['required', 'date', 'before_or_equal:today'],
             'instructor_id' => [
                 'nullable',
                 Rule::requiredIf(fn () => $this->type === 'internal' && $this->category === 'practice'),
@@ -47,6 +47,7 @@ class UpdateExamRequest extends FormRequest
 
                     if ($alreadyPassed) {
                         $validator->errors()->add('result', 'Ten kursant ma już w systemie zdany ten egzamin. Nie można edytować na podwójne zaliczenie.');
+
                     }
                 }
             }
@@ -57,6 +58,7 @@ class UpdateExamRequest extends FormRequest
     {
         return [
             'instructor_id.required' => 'Egzamin wewnętrzny z praktyki musi mieć przypisanego instruktora.',
+            'date.before_or_equal' => 'Data egzaminu nie może być z przyszłości.',
         ];
     }
 }
