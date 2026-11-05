@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Exam;
 use App\Models\Lesson;
 use App\Models\Enrollment;
 use App\Models\Vehicle;
@@ -113,6 +114,17 @@ if ($this->start_time && $this->end_time && $this->date && $this->enrollment_id)
 
                     if ($enrollment && $vehicle && $enrollment->course->category !== $vehicle->category) {
                         $validator->errors()->add('vehicle_id', "Kategoria pojazdu (Kat. {$vehicle->category}) nie pasuje do kategorii kursu (Kat. {$enrollment->course->category}).");
+                    }
+                }
+                if ($this->enrollment_id) {
+                    $hasPassedTheory = Exam::where('enrollment_id', $this->enrollment_id)
+                        ->where('type', 'internal')
+                        ->where('category', 'theory')
+                        ->where('result', 'passed')
+                        ->exists();
+
+                    if (!$hasPassedTheory) {
+                        $validator->errors()->add('enrollment_id', 'Kursant musi mieć zdany wewnętrzny egzamin z teorii, aby można było zaplanować jazdy.');
                     }
                 }
             }
