@@ -24,6 +24,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::resource('enrollments', App\Http\Controllers\Admin\EnrollmentController::class);
     Route::resource('lessons', App\Http\Controllers\Admin\LessonController::class);
     Route::resource('instructor-availabilities', App\Http\Controllers\Admin\InstructorAvailabilityController::class);
+    Route::resource('exams', App\Http\Controllers\Admin\ExamController::class);
 });
 
 require __DIR__.'/auth.php';

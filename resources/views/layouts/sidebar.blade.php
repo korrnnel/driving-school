@@ -45,6 +45,13 @@
                     Grafik Instruktorów
                 </a>
             </li>
+
+            <li class="nav-item mb-1">
+                <a class="nav-link {{ request()->routeIs('admin.exams.*') ? 'active text-primary fw-bold' : 'text-dark' }}"
+                    href="{{ route('admin.exams.index') }}">
+                    Egzaminy
+                </a>
+            </li>
         </ul>
     </div>
 </nav>
