@@ -24,6 +24,7 @@
                             <th>ID</th>
                             <th>Kursant</th>
                             <th>Kurs</th>
+                            <th>Data rozpoczęcia</th>
                             <th>Nr PKK</th>
                             <th>Status</th>
                             <th>Zapisano</th>
@@ -36,6 +37,7 @@
                                 <td>{{ $enrollment->id }}</td>
                                 <td><strong>{{ $enrollment->user->name }} {{ $enrollment->user->surname }}</strong></td>
                                 <td>{{ $enrollment->course->name }}</td>
+                                <td>{{ $enrollment->course->start_date ? \Carbon\Carbon::parse($enrollment->course->start_date)->format('d.m.Y') : 'Brak daty' }}</td>
                                 <td><span class="font-monospace">{{ $enrollment->pkk_number ?? '-' }}</span></td>
                                 <td>
                                     @if($enrollment->status === 'in_progress')
@@ -61,7 +63,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4">Brak zapisów w bazie danych.</td>
+                                <td colspan="8" class="text-center py-4">Brak zapisów w bazie danych.</td>
                             </tr>
                         @endforelse
                     </tbody>

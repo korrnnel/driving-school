@@ -29,6 +29,11 @@
                             @foreach($courses as $course)
                                 <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
                                     {{ $course->name }}
+                                    @if($course->start_date)
+                                        (Start: {{ \Carbon\Carbon::parse($course->start_date)->format('d.m.Y') }})
+                                    @else
+                                        (Brak zaplanowanej daty startu)
+                                    @endif
                                 </option>
                             @endforeach
                         </select>
