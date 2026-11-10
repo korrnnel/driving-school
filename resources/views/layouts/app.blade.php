@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Driving School') }}</title>
+    <title>{{ config('app.name', 'Szkoła jazdy') }}</title>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
@@ -18,9 +18,11 @@
 
     <div class="container-fluid">
         <div class="row">
-            @include('layouts.sidebar')
+            @if(Auth::check() && Auth::user()->role === 'admin')
+                @include('layouts.sidebar')
+            @endif
 
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <main class="{{ (Auth::check() && Auth::user()->role === 'admin') ? 'col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4' : 'col-12 px-md-4 py-4' }}">
                 @isset($header)
                     <div class="pb-3 mb-4 border-bottom">
                         {{ $header }}
