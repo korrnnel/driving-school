@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\User;
 use App\Http\Requests\StoreEnrollmentRequest;
 use App\Http\Requests\UpdateEnrollmentRequest;
+use Illuminate\Support\Carbon;
 
 class EnrollmentController extends Controller
 {
@@ -20,7 +21,11 @@ class EnrollmentController extends Controller
     public function create()
     {
         $students = User::where('role', 'student')->orderBy('surname')->get();
-        $courses = Course::latest()->get();
+
+        $courses = Course::whereNull('start_date')
+            ->orWhere('start_date', '>=', Carbon::today())
+            ->latest()
+            ->get();
 
         return view('admin.enrollments.create', compact('students', 'courses'));
     }
@@ -42,7 +47,14 @@ class EnrollmentController extends Controller
     public function edit(Enrollment $enrollment)
     {
         $students = User::where('role', 'student')->orderBy('surname')->get();
-        $courses = Course::latest()->get();
+
+        $courses = Course::where(function ($query) {
+                $query->whereNull('start_date')
+                      ->orWhere('start_date', '>=', Carbon::today());
+            })
+            ->orWhere('id', $enrollment->course_id)
+            ->latest()
+            ->get();
 
         return view('admin.enrollments.edit', compact('enrollment', 'students', 'courses'));
     }
