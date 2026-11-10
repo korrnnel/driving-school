@@ -46,19 +46,18 @@
                                     <small class="text-muted">{{ $user->phone }}</small>
                                 </td>
                                 <td>
-                                    @if($user->role === 'admin')
-                                        <span class="badge bg-danger">Administrator</span>
-                                    @elseif($user->role === 'instructor')
-                                        <span class="badge bg-primary">Instruktor</span>
-                                    @else
-                                        <span class="badge bg-success">Kursant</span>
-                                    @endif
+                                    <span
+                                        class="badge {{ $user->role === 'admin' ? 'bg-danger' : ($user->role === 'instructor' ? 'bg-primary' : 'bg-success') }}">
+                                        {{ $user->role_translated }}
+                                    </span>
                                 </td>
                                 <td>
-                                    @if($user->role === 'instructor')
-                                        <div>Upraw: <span class="font-monospace">{{ $user->license_number }}</span></div>
-                                        @if($user->assignedVehicle)
-                                            <small class="text-muted">Pojazd: {{ $user->assignedVehicle->registration_number }}</small>
+                                    @if ($user->role === 'instructor')
+                                        <div>Upraw: <span class="font-monospace">{{ $user->license_number }}</span>
+                                        </div>
+                                        @if ($user->assignedVehicle)
+                                            <small class="text-muted">Pojazd:
+                                                {{ $user->assignedVehicle->registration_number }}</small>
                                         @else
                                             <small class="text-danger">Brak pojazdu</small>
                                         @endif
@@ -67,12 +66,16 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">Edytuj</a>
+                                    <a href="{{ route('admin.users.edit', $user) }}"
+                                        class="btn btn-sm btn-outline-primary">Edytuj</a>
 
-                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Czy na pewno chcesz usunąć tego użytkownika?');">
+                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
+                                        class="d-inline-block"
+                                        onsubmit="return confirm('Czy na pewno chcesz usunąć tego użytkownika?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" {{ auth()->id() === $user->id ? 'disabled' : '' }}>Usuń</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            {{ auth()->id() === $user->id ? 'disabled' : '' }}>Usuń</button>
                                     </form>
                                 </td>
                             </tr>

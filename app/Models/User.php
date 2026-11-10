@@ -49,4 +49,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Lesson::class, 'booked_by_id');
     }
+
+    public function getRoleTranslatedAttribute(): string
+    {
+        return match($this->role) {
+            'admin' => 'Administrator',
+            'instructor' => 'Instruktor',
+            'student' => 'Kursant',
+            default => ucfirst($this->role),
+        };
+    }
 }

@@ -12,7 +12,7 @@
                     <h5 class="card-title">Witaj w systemie nauki jazdy</h5>
                     <p class="card-text">
                         Jesteś zalogowany jako: <strong>{{ Auth::user()->name }} {{ Auth::user()->surname }}</strong>.
-                        Twoja rola: <span class="badge bg-primary">{{ ucfirst(Auth::user()->role) }}</span>
+                        Twoja rola: <span class="badge bg-primary">{{ Auth::user()->role_translated }}</span>
                     </p>
                 </div>
             </div>

@@ -11,7 +11,7 @@
         <div class="d-flex ms-auto">
             <div class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle text-white px-3" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    {{ Auth::user()->name }} ({{ ucfirst(Auth::user()->role) }})
+                    {{ Auth::user()->name }} ({{ Auth::user()->role_translated }})
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                     <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
