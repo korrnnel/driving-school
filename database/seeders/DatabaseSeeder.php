@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Exam;
+use App\Models\InstructorAvailability;
 use App\Models\Lesson;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -16,129 +18,221 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            User::firstOrCreate(
+
+            $admin = User::firstOrCreate(
                 ['email' => 'admin@admin.com'],
-                [
-                    'name' => 'Admin',
-                    'surname' => 'Szkoły',
-                    'phone' => '111222333',
-                    'password' => 'password',
-                    'role' => 'admin',
-                ]
+                ['name' => 'Admin', 'surname' => 'Szkoły', 'phone' => '111222333', 'password' => 'password', 'role' => 'admin']
             );
 
-            $instructors = User::factory(4)->instructor()->withVehicle()->create();
-
-            $motorcycle = Vehicle::factory()->categoryA()->create();
-            $instructors->push(
-                User::factory()->instructor()->withVehicle($motorcycle->id)->create()
+            $mainInstructor = User::firstOrCreate(
+                ['email' => 'instruktor@instruktor.com'],
+                ['name' => 'Instruktor', 'surname' => 'Szkoły', 'phone' => '333222111', 'password' => 'password', 'role' => 'instructor', 'license_number' => 'INS1234']
             );
 
-            $truck = Vehicle::factory()->categoryC()->create();
-            $instructors->push(
-                User::factory()->instructor()->withVehicle($truck->id)->create()
+            $kursant1 = User::firstOrCreate(
+                ['email' => 'kursant1@kursant1.com'],
+                ['name' => 'Kursant1', 'surname' => 'Szkoły', 'phone' => '222111333', 'password' => 'password', 'role' => 'student']
             );
+
+            $kursant2 = User::firstOrCreate(
+                ['email' => 'kursant2@kursant2.com'],
+                ['name' => 'Kursant2', 'surname' => 'Szkoły', 'phone' => '444111222', 'password' => 'password', 'role' => 'student']
+            );
+
+            $bVehiclesActive = Vehicle::factory(7)->create(['category' => 'B']);
+            $bVehicleMaint = Vehicle::factory()->maintenance()->create(['category' => 'B']);
+            $cVehiclesActive = Vehicle::factory(3)->categoryC()->create();
+            $aVehiclesActive = Vehicle::factory(3)->categoryA()->create();
+            $aVehicleMaint = Vehicle::factory()->categoryA()->maintenance()->create();
+
+            $mainInstructor->update(['assigned_vehicle_id' => $bVehiclesActive[0]->id]);
+
+            $instructorsB = User::factory(3)->instructor()->create();
+            foreach ($instructorsB as $i => $inst) {
+                $inst->update(['assigned_vehicle_id' => $bVehiclesActive[$i + 1]->id]);
+            }
+
+            $instructorC = User::factory()->instructor()->create(['assigned_vehicle_id' => $cVehiclesActive[0]->id]);
+            $instructorA = User::factory()->instructor()->create(['assigned_vehicle_id' => $aVehiclesActive[0]->id]);
+
+            $allInstructors = collect([$mainInstructor])->merge($instructorsB)->push($instructorC)->push($instructorA);
+
+            $startDate = Carbon::today()->subMonths(6);
+            $endDate = Carbon::today()->addMonth();
+
+            foreach ($allInstructors as $index => $instructor) {
+                $currentDate = $startDate->copy();
+
+                while ($currentDate->lte($endDate)) {
+                    if ($instructor->id === $mainInstructor->id && $currentDate->isWeekday()) {
+                        InstructorAvailability::factory()->create(['instructor_id' => $instructor->id, 'date' => $currentDate, 'start_time' => '10:00:00', 'end_time' => '18:00:00']);
+                    } elseif ($index === 1 || $index === 2) {
+                        if ($currentDate->isWeekday()) InstructorAvailability::factory()->create(['instructor_id' => $instructor->id, 'date' => $currentDate, 'start_time' => '08:00:00', 'end_time' => '16:00:00']);
+                    } elseif ($index === 3 || $index === 4) {
+                        if ($currentDate->isWeekday()) InstructorAvailability::factory()->create(['instructor_id' => $instructor->id, 'date' => $currentDate, 'start_time' => '12:00:00', 'end_time' => '20:00:00']);
+                    } elseif ($index === 5) {
+                        if ($currentDate->dayOfWeek >= 3 || $currentDate->dayOfWeek == 0) InstructorAvailability::factory()->create(['instructor_id' => $instructor->id, 'date' => $currentDate, 'start_time' => '10:00:00', 'end_time' => '18:00:00']);
+                    }
+                    $currentDate->addDay();
+                }
+            }
 
             $courses = collect([
-                Course::factory()->categoryB()->standard()->create([
-                    'start_date' => today()->subDays(100)->toDateString(),
-                ]),
-                Course::factory()->categoryB()->accelerated()->upcoming()->create(),
-                Course::factory()->categoryA()->standard()->create([
-                    'start_date' => today()->subDays(90)->toDateString(),
-                ]),
-                Course::factory()->categoryC()->weekend()->unscheduled()->create(),
+                Course::factory()->categoryB()->standard()->create(['start_date' => today()->subMonths(6)->toDateString()]),
+                Course::factory()->categoryB()->standard()->create(['start_date' => today()->subDays(45)->toDateString()]),
+                Course::factory()->categoryB()->accelerated()->create(['start_date' => today()->subDays(21)->toDateString()]),
+                Course::factory()->categoryA()->standard()->create(['start_date' => today()->subDays(60)->toDateString()]),
+                Course::factory()->categoryC()->standard()->create(['start_date' => today()->subMonths(5)->toDateString()]),
+                Course::factory()->categoryB()->weekend()->upcoming()->create(['start_date' => today()->addDays(14)->toDateString()]),
             ]);
 
-            $students = User::factory(30)->create();
             $bookedSlots = [];
 
-            foreach ($students as $index => $student) {
-                $course = $courses[$index % $courses->count()];
-                $baseDate = $course->start_date
-                    ? Carbon::parse($course->start_date)
-                    : null;
+            $findAvailableSlot = function ($instructorId, Carbon $afterDate, bool $isAccelerated) use (&$bookedSlots) {
+                $daysToAdd = $isAccelerated ? 1 : rand(1, 3);
+                $searchDate = $afterDate->copy()->addDays($daysToAdd);
 
-                $isCompleted = in_array($index, [0, 2, 4, 6], true);
-                $isDropped = in_array($index, [8, 10], true);
-                $status = $isCompleted ? 'completed' : ($isDropped ? 'dropped' : 'in_progress');
-
-                $enrolledAt = $baseDate && $baseDate->isPast()
-                    ? $baseDate->copy()->subDays(7)
-                    : now()->subDays(7);
-
-                $enrollment = Enrollment::create([
-                    'user_id' => $student->id,
-                    'course_id' => $course->id,
-                    'status' => $status,
-                    'enrolled_at' => $enrolledAt,
-                    'theory_completed_at' => $isCompleted
-                        ? $baseDate->copy()->addDays(14)->setTime(18, 0)
-                        : null,
-                ]);
-
-                if (!$baseDate) {
-                    continue;
-                }
-
-                $matchingInstructors = $instructors->filter(
-                    fn ($user) => $user->assignedVehicle?->category === $course->category
-                );
-
-                if ($matchingInstructors->isEmpty()) {
-                    throw new \RuntimeException("Brak instruktora dla kategorii {$course->category}");
-                }
-
-                $instructor = $matchingInstructors->random();
-
-                $lessonCount = $isCompleted
-                    ? (int) ceil($course->required_practice_hours / 2)
-                    : rand(1, 3);
-
-                $lastLessonEnd = null;
-
-                for ($i = 0; $i < $lessonCount; $i++) {
-                    $lessonDate = $isCompleted
-                        ? $baseDate->copy()->addDays(16 + $i * 2)
-                        : $baseDate->copy()->addDays(rand(1, $baseDate->isFuture() ? 30 : 60));
-
-                    $startHour = $isCompleted
-                        ? ($index < 4 ? 8 : 10)
-                        : fake()->randomElement([8, 10, 12, 14, 16]);
-
-                    $slotKey = "{$instructor->id}_{$lessonDate->format('Y-m-d')}_{$startHour}";
-
-                    if (isset($bookedSlots[$slotKey])) {
-                        if ($isCompleted) {
-                            throw new \RuntimeException('Kolizja terminu ukończonego kursu.');
+                while (true) {
+                    $hours = [8, 10, 12, 14, 16];
+                    shuffle($hours);
+                    foreach ($hours as $h) {
+                        $key = "{$instructorId}_{$searchDate->format('Y-m-d')}_{$h}";
+                        if (!isset($bookedSlots[$key])) {
+                            $bookedSlots[$key] = true;
+                            return ['date' => $searchDate->copy(), 'hour' => $h];
                         }
-                        continue;
+                    }
+                    $searchDate->addDay();
+                }
+            };
+
+            foreach ($courses as $cIndex => $course) {
+                $isCompletedCourse = in_array($cIndex, [0, 4]);
+                $isUpcomingCourse = ($cIndex === 5);
+                $isAccelerated = ($course->type === 'accelerated');
+
+                $courseInstructors = $allInstructors->filter(fn($i) => $i->assignedVehicle->category === $course->category)->values();
+                if ($courseInstructors->isEmpty()) continue;
+
+                for ($s = 0; $s < 10; $s++) {
+                    if ($cIndex === 0 && $s === 0) {
+                        $student = $kursant1;
+                    } elseif ($cIndex === 1 && $s === 0) {
+                        $student = $kursant2;
+                    } else {
+                        $student = User::factory()->create();
                     }
 
-                    $lessonStart = $lessonDate->copy()->setTime($startHour, 0);
-                    $lessonStatus = $isCompleted
-                        ? 'completed'
-                        : ($lessonStart->isPast()
-                            ? fake()->randomElement(['completed', 'no_show', 'cancelled'])
-                            : 'scheduled');
+                    $archetype = 'average';
+                    if ($s < 2) $archetype = 'excellent';
+                    elseif ($s >= 8) $archetype = 'struggler';
 
-                    Lesson::create([
-                        'enrollment_id' => $enrollment->id,
-                        'instructor_id' => $instructor->id,
-                        'vehicle_id' => $instructor->assigned_vehicle_id,
-                        'booked_by_id' => $student->id,
-                        'date' => $lessonDate->toDateString(),
-                        'start_time' => sprintf('%02d:00:00', $startHour),
-                        'end_time' => sprintf('%02d:00:00', $startHour + 2),
-                        'status' => $lessonStatus,
+                    $isDropped = ($archetype === 'struggler' && !$isCompletedCourse && !$isUpcomingCourse && $s === 9);
+
+                    $enrollStatus = 'in_progress';
+                    if ($isCompletedCourse) $enrollStatus = 'completed';
+                    if ($isDropped) $enrollStatus = 'dropped';
+
+                    $enrollment = Enrollment::factory()->create([
+                        'user_id' => $student->id,
+                        'course_id' => $course->id,
+                        'status' => $enrollStatus,
+                        'enrolled_at' => $course->start_date,
                     ]);
 
-                    $bookedSlots[$slotKey] = true;
-                    $lastLessonEnd = $lessonDate->copy()->setTime($startHour + 2, 0);
-                }
+                    if ($isUpcomingCourse) continue;
 
-                if ($isCompleted) {
-                    $enrollment->update(['practice_completed_at' => $lastLessonEnd]);
+                    $theoryDate = Carbon::parse($course->start_date)->addDays(14);
+                    $enrollment->update(['theory_completed_at' => $theoryDate]);
+                    Exam::factory()->create(['enrollment_id' => $enrollment->id, 'date' => $theoryDate]);
+
+                    $instructor = $courseInstructors->random();
+                    $requiredLessons = (int) ceil($course->required_practice_hours / 2);
+
+                    $extraLessons = 0;
+                    if ($archetype === 'average') $extraLessons = rand(0, 1);
+                    if ($archetype === 'struggler') $extraLessons = rand(1, 2);
+
+                    $totalLessonsToGenerate = $requiredLessons + $extraLessons;
+
+
+                    if ($isDropped) {
+                        $totalLessonsToGenerate = rand(3, 7);
+                    }
+
+                    $lastLessonDate = null;
+                    $lessonTrackerDate = $theoryDate->copy();
+
+                    for ($l = 0; $l < $totalLessonsToGenerate; $l++) {
+                        $slot = $findAvailableSlot($instructor->id, $lessonTrackerDate, $isAccelerated);
+                        $lDate = $slot['date'];
+                        $lHour = $slot['hour'];
+                        $lessonTrackerDate = $lDate->copy();
+
+                        $lessonStatus = $lDate->isPast() ? 'completed' : 'scheduled';
+                        if ($isDropped && $lDate->isFuture()) continue;
+
+                        $isExtra = ($l >= $requiredLessons);
+
+                        $factoryState = null;
+                        if ($archetype === 'excellent' && $l >= 3) $factoryState = 'perfectRide';
+                        if ($archetype === 'average') {
+                            if (in_array($l, [4, 8])) $factoryState = 'terribleRide';
+                            if (in_array($l, [5, 9])) $factoryState = 'perfectRide';
+                        }
+                        if ($archetype === 'struggler') {
+                            if ($l % 3 === 0) $factoryState = 'terribleRide';
+                        }
+                        if ($lessonStatus === 'scheduled') $factoryState = 'scheduled';
+
+                        $lessonFactory = Lesson::factory();
+
+
+                        if ($factoryState) {
+                            $lessonFactory = $lessonFactory->{$factoryState}();
+                        }
+
+                        $lesson = $lessonFactory->create([
+                            'enrollment_id' => $enrollment->id,
+                            'instructor_id' => $instructor->id,
+                            'vehicle_id' => $instructor->assigned_vehicle_id,
+                            'booked_by_id' => $student->id,
+                            'date' => $lDate->toDateString(),
+                            'start_time' => sprintf('%02d:00:00', $lHour),
+                            'end_time' => sprintf('%02d:00:00', $lHour + 2),
+                            'is_additional_hour' => $isExtra,
+                            'status' => $lessonStatus,
+                        ]);
+
+                        $lastLessonDate = $lDate->copy();
+                    }
+
+                    if ($isCompletedCourse && $lastLessonDate) {
+                        $enrollment->update(['practice_completed_at' => $lastLessonDate]);
+
+                        $internalPracDate = $lastLessonDate->copy()->addDays(3);
+                        Exam::factory()->practice()->create(['enrollment_id' => $enrollment->id, 'instructor_id' => $instructor->id, 'date' => $internalPracDate]);
+
+                        $stateTheoryDate = $internalPracDate->copy()->addDays(10);
+                        Exam::factory()->stateExam()->create(['enrollment_id' => $enrollment->id, 'date' => $stateTheoryDate]);
+
+                        $statePracDate = $stateTheoryDate->copy()->addDays(7);
+
+                        if ($archetype === 'excellent') {
+                            Exam::factory()->stateExam()->practice()->create(['enrollment_id' => $enrollment->id, 'date' => $statePracDate]);
+                        } elseif ($archetype === 'average') {
+                            if (rand(0,1)) {
+                                Exam::factory()->stateExam()->practice()->failed()->create(['enrollment_id' => $enrollment->id, 'date' => $statePracDate]);
+                                Exam::factory()->stateExam()->practice()->create(['enrollment_id' => $enrollment->id, 'date' => $statePracDate->addDays(14)]);
+                            } else {
+                                Exam::factory()->stateExam()->practice()->create(['enrollment_id' => $enrollment->id, 'date' => $statePracDate]);
+                            }
+                        } elseif ($archetype === 'struggler') {
+                            Exam::factory()->stateExam()->practice()->failed()->create(['enrollment_id' => $enrollment->id, 'date' => $statePracDate]);
+                            Exam::factory()->stateExam()->practice()->failed()->create(['enrollment_id' => $enrollment->id, 'date' => $statePracDate->copy()->addDays(14)]);
+                            Exam::factory()->stateExam()->practice()->create(['enrollment_id' => $enrollment->id, 'date' => $statePracDate->copy()->addDays(28)]);
+                        }
+                    }
                 }
             }
         });
