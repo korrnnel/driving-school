@@ -27,4 +27,16 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
     Route::resource('exams', App\Http\Controllers\Admin\ExamController::class);
 });
 
+
+Route::middleware(['auth', \App\Http\Middleware\IsInstructor::class])->prefix('instructor')->name('instructor.')->group(function () {
+
+    Route::get('/availability', [App\Http\Controllers\Instructor\AvailabilityController::class, 'index'])->name('availability.index');
+    Route::post('/availability', [App\Http\Controllers\Instructor\AvailabilityController::class, 'store'])->name('availability.store');
+    Route::delete('/availability/{availability}', [App\Http\Controllers\Instructor\AvailabilityController::class, 'destroy'])->name('availability.destroy');
+
+    Route::get('/lessons', [App\Http\Controllers\Instructor\LessonController::class, 'index'])->name('lessons.index');
+    Route::get('/lessons/{lesson}/evaluate', [App\Http\Controllers\Instructor\LessonController::class, 'evaluate'])->name('lessons.evaluate');
+    Route::put('/lessons/{lesson}/evaluate', [App\Http\Controllers\Instructor\LessonController::class, 'updateEvaluation'])->name('lessons.updateEvaluation');
+});
+
 require __DIR__.'/auth.php';

@@ -18,11 +18,12 @@
 
     <div class="container-fluid">
         <div class="row">
-            @if(Auth::check() && Auth::user()->role === 'admin')
+
+            @if(Auth::check() && in_array(Auth::user()->role, ['admin', 'instructor']))
                 @include('layouts.sidebar')
             @endif
 
-            <main class="{{ (Auth::check() && Auth::user()->role === 'admin') ? 'col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4' : 'col-12 px-md-4 py-4' }}">
+            <main class="{{ (Auth::check() && in_array(Auth::user()->role, ['admin', 'instructor'])) ? 'col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4' : 'col-12 px-md-4 py-4' }}">
                 @isset($header)
                     <div class="pb-3 mb-4 border-bottom">
                         {{ $header }}
@@ -31,6 +32,7 @@
 
                 {{ $slot }}
             </main>
+
         </div>
     </div>
 </body>
