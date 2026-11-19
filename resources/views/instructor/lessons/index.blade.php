@@ -10,6 +10,13 @@
         </div>
     @endif
 
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -44,9 +51,17 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('instructor.lessons.evaluate', $lesson) }}" class="btn btn-sm btn-primary">
-                                        {{ $lesson->status === 'scheduled' ? 'Zakończ i oceń' : 'Podgląd / Edytuj' }}
-                                    </a>
+                                    @php
+                                        $lessonStart = \Carbon\Carbon::parse($lesson->date->format('Y-m-d') . ' ' . $lesson->start_time);
+                                    @endphp
+
+                                    @if(now()->lt($lessonStart) && $lesson->status === 'scheduled')
+                                        <span class="text-muted small px-2">Dostępne po rozpoczęciu</span>
+                                    @else
+                                        <a href="{{ route('instructor.lessons.evaluate', $lesson) }}" class="btn btn-sm btn-primary">
+                                            {{ $lesson->status === 'scheduled' ? 'Zakończ i oceń' : 'Podgląd / Edytuj' }}
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
