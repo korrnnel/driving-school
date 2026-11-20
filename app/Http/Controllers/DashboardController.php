@@ -6,13 +6,14 @@ use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\Vehicle;
 use App\Models\User;
+use App\Services\CohortAnalysisService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(CohortAnalysisService $analysisService): View
     {
         /** @var User $user */
         $user = Auth::user();
@@ -28,11 +29,11 @@ class DashboardController extends Controller
             $instructorsCount = User::where('role', 'instructor')->count();
 
             $enrollments = Enrollment::whereHas('user')->with('course')->get();
-            $categoryStats = $enrollments->groupBy(function($enrollment) {
+            $categoryStats = $enrollments->groupBy(function ($enrollment) {
                 return $enrollment->course ? $enrollment->course->category : 'Nieznana';
             })->map->count();
 
-            $chartCategoriesLabels = $categoryStats->keys()->map(fn($cat) => 'Kat. ' . $cat)->toJson();
+            $chartCategoriesLabels = $categoryStats->keys()->map(fn ($cat) => 'Kat. ' . $cat)->toJson();
             $chartCategoriesData = $categoryStats->values()->toJson();
 
             $dates = [];
@@ -51,9 +52,7 @@ class DashboardController extends Controller
                 'chartCategoriesLabels', 'chartCategoriesData',
                 'chartDatesJson', 'chartLessonsJson'
             ));
-        }
-
-        elseif ($user->role === 'instructor') {
+        } elseif ($user->role === 'instructor') {
             $todayLessons = Lesson::where('instructor_id', $user->id)->where('date', Carbon::today())->count();
 
             $monthLessons = Lesson::where('instructor_id', $user->id)
@@ -92,6 +91,35 @@ class DashboardController extends Controller
             ));
         }
 
-        return view('dashboard');
+        $enrollments = Enrollment::where('user_id', $user->id)
+            ->with([
+                'course',
+                'lessons' => fn ($q) => $q->with(['instructor', 'vehicle'])->orderBy('date', 'asc')->orderBy('start_time', 'asc'),
+            ])
+            ->latest('enrolled_at')
+            ->get();
+
+        $studentCourses = $enrollments->map(function ($enrollment) use ($analysisService) {
+            $drivenHours = $analysisService->getCompletedPracticeHours($enrollment);
+            $requiredHours = $enrollment->course->required_practice_hours;
+            $progressPercent = $requiredHours > 0 ? min(100, (int) round(($drivenHours / $requiredHours) * 100)) : 100;
+
+            $upcomingLessons = $enrollment->lessons
+                ->where('status', 'scheduled')
+                ->filter(function ($lesson) {
+                    return Carbon::parse($lesson->date->format('Y-m-d') . ' ' . $lesson->end_time)->isFuture();
+                })
+                ->values();
+
+            return [
+                'enrollment' => $enrollment,
+                'driven_hours' => $drivenHours,
+                'required_hours' => $requiredHours,
+                'progress_percent' => $progressPercent,
+                'upcoming_lessons' => $upcomingLessons,
+            ];
+        });
+
+        return view('student.dashboard', compact('studentCourses'));
     }
 }

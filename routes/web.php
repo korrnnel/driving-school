@@ -39,4 +39,8 @@ Route::middleware(['auth', \App\Http\Middleware\IsInstructor::class])->prefix('i
     Route::put('/lessons/{lesson}/evaluate', [App\Http\Controllers\Instructor\LessonController::class, 'updateEvaluation'])->name('lessons.updateEvaluation');
 });
 
+Route::middleware(['auth', \App\Http\Middleware\IsStudent::class])->prefix('student')->name('student.')->group(function () {
+    Route::get('/results', [App\Http\Controllers\Student\ResultController::class, 'index'])->name('results.index');
+});
+
 require __DIR__.'/auth.php';
