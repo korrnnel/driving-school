@@ -3,9 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Models\Course;
+use App\Models\Enrollment;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Validator;
 
 class UpdateEnrollmentRequest extends FormRequest
 {
@@ -31,19 +32,43 @@ class UpdateEnrollmentRequest extends FormRequest
     {
         return [
             function (Validator $validator) {
-                if ($this->course_id && $this->enrolled_at) {
-                    $course = Course::find($this->course_id);
+                $enrollmentId = $this->route('enrollment')->id;
+                $course = $this->course_id ? Course::find($this->course_id) : null;
 
-                    if ($course && $course->start_date) {
-                        $enrolledAt = Carbon::parse($this->enrolled_at)->startOfDay();
-                        $startDate = Carbon::parse($course->start_date)->startOfDay();
+                if ($this->user_id && $course) {
+                    $alreadyEnrolled = Enrollment::where('user_id', $this->user_id)
+                        ->where('course_id', $course->id)
+                        ->where('id', '!=', $enrollmentId)
+                        ->exists();
 
-                        if ($enrolledAt->gt($startDate)) {
-                            $validator->errors()->add(
-                                'enrolled_at',
-                                "Data zapisu nie może być późniejsza niż data rozpoczęcia kursu ({$startDate->format('d.m.Y')})."
-                            );
+                    if ($alreadyEnrolled) {
+                        $validator->errors()->add('user_id', 'Ten kursant jest już zapisany na ten kurs w innym rekordzie.');
+                    }
+
+                    if (in_array($this->status, ['in_progress', 'completed'])) {
+                        $sameCategoryExists = Enrollment::where('user_id', $this->user_id)
+                            ->where('id', '!=', $enrollmentId)
+                            ->whereIn('status', ['in_progress', 'completed'])
+                            ->whereHas('course', function ($query) use ($course) {
+                                $query->where('category', $course->category);
+                            })
+                            ->exists();
+
+                        if ($sameCategoryExists) {
+                            $validator->errors()->add('course_id', "Ten kursant ma już aktywny lub ukończony kurs kategorii {$course->category}.");
                         }
+                    }
+                }
+
+                if ($course && $course->start_date && $this->enrolled_at) {
+                    $enrolledAt = Carbon::parse($this->enrolled_at)->startOfDay();
+                    $startDate = Carbon::parse($course->start_date)->startOfDay();
+
+                    if ($enrolledAt->gt($startDate)) {
+                        $validator->errors()->add(
+                            'enrolled_at',
+                            "Data zapisu nie może być późniejsza niż data rozpoczęcia kursu ({$startDate->format('d.m.Y')})."
+                        );
                     }
                 }
             }
