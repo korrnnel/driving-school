@@ -3,9 +3,11 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [App\Http\Controllers\PublicController::class, 'home'])->name('home');
+Route::get('/kursy', [App\Http\Controllers\PublicController::class, 'courses'])->name('public.courses');
+Route::get('/flota', [App\Http\Controllers\PublicController::class, 'fleet'])->name('public.fleet');
+Route::get('/o-nas', [App\Http\Controllers\PublicController::class, 'about'])->name('public.about');
+Route::get('/kontakt', [App\Http\Controllers\PublicController::class, 'contact'])->name('public.contact');
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])

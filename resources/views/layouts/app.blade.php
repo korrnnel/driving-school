@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Szkoła jazdy') }}</title>
+    <title>{{ config('app.name', 'OSK L-auto') }}</title>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-
-    <style>
-        .sidebar { min-height: calc(100vh - 56px); }
-    </style>
 </head>
-<body class="bg-light">
-    @include('layouts.navigation')
+<body class="d-flex flex-column min-vh-100 bg-light">
+    @include('layouts.navigation', ['withSidebar' => true])
 
-    <div class="container-fluid">
-        <div class="row">
+    <div class="container-fluid flex-grow-1 d-flex flex-column">
+        <div class="row flex-grow-1">
             @if(Auth::check())
                 @include('layouts.sidebar')
             @endif
@@ -33,5 +29,7 @@
             </main>
         </div>
     </div>
+
+    @include('layouts.footer')
 </body>
 </html>
