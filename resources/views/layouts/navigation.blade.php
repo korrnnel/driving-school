@@ -35,28 +35,20 @@
                 </li>
             </ul>
 
-            <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+            <div class="d-flex align-items-center flex-wrap gap-2 mt-2 mt-lg-0">
                 @auth
+                    <span class="text-white-50 small me-1">
+                        {{ Auth::user()->name }} ({{ Auth::user()->role_translated }})
+                    </span>
+
                     @if(empty($withSidebar))
-                        <a href="{{ route('dashboard') }}" class="btn btn-primary btn-sm">Przejdź do panelu</a>
+                        <a href="{{ route('dashboard') }}" class="btn btn-primary btn-sm">Mój panel</a>
                     @endif
 
-                    <div class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white px-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ Auth::user()->name }} ({{ Auth::user()->role_translated }})
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ route('dashboard') }}">Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profil</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item">Wyloguj się</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+                    <form method="POST" action="{{ route('logout') }}" class="m-0">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-light btn-sm">Wyloguj się</button>
+                    </form>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm">Zaloguj się</a>
                     <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Zarejestruj się</a>

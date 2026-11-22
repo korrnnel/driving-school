@@ -13,11 +13,9 @@
                     </p>
                     <div class="d-flex flex-wrap gap-2">
                         <a href="{{ route('public.courses') }}" class="btn btn-light btn-lg fw-semibold">Zobacz ofertę kursów</a>
-                        @auth
-                            <a href="{{ route('dashboard') }}" class="btn btn-outline-light btn-lg">Przejdź do panelu</a>
-                        @else
+                        @guest
                             <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg">Panel kursanta</a>
-                        @endauth
+                        @endguest
                     </div>
                 </div>
             </div>
