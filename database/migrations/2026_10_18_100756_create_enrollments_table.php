@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('pkk_number', 20)->nullable();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
-            $table->enum('status', ['in_progress', 'completed', 'dropped', 'cancelled'])->default('in_progress');
+            $table->enum('status', ['waiting', 'in_progress', 'completed', 'dropped', 'cancelled'])->default('in_progress');
             $table->timestamp('theory_completed_at')->nullable();
             $table->timestamp('practice_completed_at')->nullable();
             $table->timestamp('enrolled_at')->useCurrent();

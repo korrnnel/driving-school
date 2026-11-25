@@ -4,6 +4,12 @@
         <p class="text-muted small mb-0">Zaloguj się do swojego konta w {{ config('app.name', 'OSK L-auto') }}</p>
     </div>
 
+    @if (request()->boolean('enroll'))
+        <div class="alert alert-info small mb-3" role="alert">
+            Zaloguj się lub załóż konto kursanta, aby móc zapisać się na wybrany kurs.
+        </div>
+    @endif
+
     @if (session('status'))
         <div class="alert alert-success small mb-3" role="alert">
             {{ session('status') }}

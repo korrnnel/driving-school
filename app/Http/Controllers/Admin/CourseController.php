@@ -25,7 +25,7 @@ class CourseController extends Controller
         Course::create($request->validated());
 
         return redirect()->route('admin.courses.index')
-            ->with('success', 'Course created successfully.');
+            ->with('success', 'Kurs został pomyślnie utworzony.');
     }
 
     public function show(Course $course)
@@ -43,7 +43,7 @@ class CourseController extends Controller
         $course->update($request->validated());
 
         return redirect()->route('admin.courses.index')
-            ->with('success', 'Course updated successfully.');
+            ->with('success', 'Kurs został pomyślnie zaktualizowany.');
     }
 
     public function destroy(Course $course)
@@ -51,6 +51,6 @@ class CourseController extends Controller
         $course->delete();
 
         return redirect()->route('admin.courses.index')
-            ->with('success', 'Course deleted successfully.');
+            ->with('success', 'Kurs został pomyślnie usunięty.');
     }
 }

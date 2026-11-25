@@ -11,6 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Instructor\AvailabilityController;
 use App\Http\Controllers\Instructor\LessonController as InstructorLessonController;
 use App\Http\Controllers\PublicController;
+use App\Http\Controllers\Student\EnrollmentController as StudentEnrollmentController;
 use App\Http\Controllers\Student\ResultController;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsInstructor;
@@ -31,6 +32,8 @@ Route::middleware(['auth', IsAdmin::class])->prefix('admin')->name('admin.')->gr
     Route::resource('courses', CourseController::class);
     Route::resource('vehicles', VehicleController::class);
     Route::resource('users', UserController::class);
+    Route::patch('enrollments/{enrollment}/approve', [EnrollmentController::class, 'approve'])->name('enrollments.approve');
+    Route::patch('enrollments/{enrollment}/reject', [EnrollmentController::class, 'reject'])->name('enrollments.reject');
     Route::resource('enrollments', EnrollmentController::class);
     Route::resource('lessons', AdminLessonController::class);
     Route::resource('instructor-availabilities', InstructorAvailabilityController::class);
@@ -49,6 +52,7 @@ Route::middleware(['auth', IsInstructor::class])->prefix('instructor')->name('in
 
 Route::middleware(['auth', IsStudent::class])->prefix('student')->name('student.')->group(function () {
     Route::get('/results', [ResultController::class, 'index'])->name('results.index');
+    Route::post('/enrollments', [StudentEnrollmentController::class, 'store'])->name('enrollments.store');
 });
 
 require __DIR__.'/auth.php';

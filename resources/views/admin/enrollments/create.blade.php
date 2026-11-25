@@ -46,6 +46,7 @@
                         <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
                         <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
                             <option value="in_progress" {{ old('status') == 'in_progress' ? 'selected' : '' }}>W trakcie</option>
+                            <option value="waiting" {{ old('status') == 'waiting' ? 'selected' : '' }}>Oczekuje</option>
                             <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Ukończony</option>
                             <option value="dropped" {{ old('status') == 'dropped' ? 'selected' : '' }}>Przerwany</option>
                             <option value="cancelled" {{ old('status') == 'cancelled' ? 'selected' : '' }}>Anulowany</option>

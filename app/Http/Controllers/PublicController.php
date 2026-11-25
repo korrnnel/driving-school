@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class PublicController extends Controller
@@ -28,13 +29,15 @@ class PublicController extends Controller
             ->take(3)
             ->get();
 
-        return view('public.home', compact(
+        $studentState = $this->getStudentEnrollmentState();
+
+        return view('public.home', array_merge(compact(
             'instructorsCount',
             'vehiclesCount',
             'completedLessonsCount',
             'graduatesCount',
             'upcomingCourses'
-        ));
+        ), $studentState));
     }
 
     public function courses(Request $request): View
@@ -53,8 +56,9 @@ class PublicController extends Controller
         }
 
         $courses = $query->orderBy('start_date', 'asc')->get();
+        $studentState = $this->getStudentEnrollmentState();
 
-        return view('public.courses', compact('courses', 'category'));
+        return view('public.courses', array_merge(compact('courses', 'category'), $studentState));
     }
 
     public function fleet(Request $request): View
@@ -91,5 +95,35 @@ class PublicController extends Controller
     public function contact(): View
     {
         return view('public.contact');
+    }
+
+    private function getStudentEnrollmentState(): array
+    {
+        if (!Auth::check() || Auth::user()->role !== 'student') {
+            return [
+                'studentEnrollmentsByCourse' => [],
+                'blockedCategories' => [],
+            ];
+        }
+
+        $enrollments = Enrollment::with('course')
+            ->where('user_id', Auth::id())
+            ->get();
+
+        $studentEnrollmentsByCourse = [];
+        $blockedCategories = [];
+
+        foreach ($enrollments as $enrollment) {
+            $studentEnrollmentsByCourse[$enrollment->course_id] = $enrollment->status;
+
+            if ($enrollment->course && in_array($enrollment->status, ['waiting', 'in_progress', 'completed'], true)) {
+                $blockedCategories[] = $enrollment->course->category;
+            }
+        }
+
+        return [
+            'studentEnrollmentsByCourse' => $studentEnrollmentsByCourse,
+            'blockedCategories' => array_unique($blockedCategories),
+        ];
     }
 }

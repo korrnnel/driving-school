@@ -21,7 +21,7 @@ class UpdateEnrollmentRequest extends FormRequest
             'user_id' => ['required', 'exists:users,id'],
             'course_id' => ['required', 'exists:courses,id'],
             'pkk_number' => ['nullable', 'string', 'max:20'],
-            'status' => ['required', 'in:in_progress,completed,dropped,cancelled'],
+            'status' => ['required', 'in:waiting,in_progress,completed,dropped,cancelled'],
             'enrolled_at' => ['required', 'date'],
             'theory_completed_at' => ['nullable', 'date', 'after_or_equal:enrolled_at'],
             'practice_completed_at' => ['nullable', 'date', 'after_or_equal:theory_completed_at'],
@@ -45,17 +45,17 @@ class UpdateEnrollmentRequest extends FormRequest
                         $validator->errors()->add('user_id', 'Ten kursant jest już zapisany na ten kurs w innym rekordzie.');
                     }
 
-                    if (in_array($this->status, ['in_progress', 'completed'])) {
+                    if (in_array($this->status, ['waiting', 'in_progress', 'completed'], true)) {
                         $sameCategoryExists = Enrollment::where('user_id', $this->user_id)
                             ->where('id', '!=', $enrollmentId)
-                            ->whereIn('status', ['in_progress', 'completed'])
+                            ->whereIn('status', ['waiting', 'in_progress', 'completed'])
                             ->whereHas('course', function ($query) use ($course) {
                                 $query->where('category', $course->category);
                             })
                             ->exists();
 
                         if ($sameCategoryExists) {
-                            $validator->errors()->add('course_id', "Ten kursant ma już aktywny lub ukończony kurs kategorii {$course->category}.");
+                            $validator->errors()->add('course_id', "Ten kursant ma już oczekujący, aktywny lub ukończony kurs kategorii {$course->category}.");
                         }
                     }
                 }

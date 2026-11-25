@@ -67,13 +67,13 @@
         </div>
     </div>
 
-    <script>
+ <script>
         document.addEventListener('DOMContentLoaded', function() {
             const categorySelect = document.getElementById('category');
             const theoryInput = document.getElementById('required_theory_hours');
             const practiceInput = document.getElementById('required_practice_hours');
 
-            function updateMinHours() {
+            function updateMinHours(setDefaults) {
                 const category = categorySelect.value;
                 let minTheory = 30;
                 let minPractice = 30;
@@ -84,22 +84,19 @@
                     minTheory = 20;
                 }
 
-                // Ustawiamy atrybuty MIN dla pól HTML
                 theoryInput.min = minTheory;
                 practiceInput.min = minPractice;
 
-                // Jeżeli użytkownik wpisał mniej niż wynosi nowe minimum, podmieniamy wartość
-                if (theoryInput.value && parseInt(theoryInput.value) < minTheory) {
+                if (setDefaults) {
                     theoryInput.value = minTheory;
-                }
-                if (practiceInput.value && parseInt(practiceInput.value) < minPractice) {
                     practiceInput.value = minPractice;
                 }
             }
 
-            categorySelect.addEventListener('change', updateMinHours);
-            // Wywołujemy przy załadowaniu strony, by zaktualizować na podstawie obecnego wyboru
-            updateMinHours();
+            categorySelect.addEventListener('change', function() {
+                updateMinHours(true);
+            });
+            updateMinHours(false);
         });
     </script>
 </x-app-layout>

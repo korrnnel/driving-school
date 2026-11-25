@@ -24,6 +24,17 @@
 
     <section class="py-5">
         <div class="container">
+            @if ($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             <div class="row g-4 text-center">
                 <div class="col-6 col-md-3">
                     <div class="card shadow-sm border-0 h-100">
@@ -129,7 +140,25 @@
                                     <li><strong>Praktyka:</strong> {{ $course->required_practice_hours }} h</li>
                                 </ul>
                                 <div class="mt-auto">
-                                    <a href="{{ route('public.contact') }}" class="btn btn-outline-primary w-100 btn-sm">Zapisz się na kurs</a>
+                                    @guest
+                                        <a href="{{ route('login', ['enroll' => 1]) }}" class="btn btn-outline-primary w-100 btn-sm">Zapisz się na kurs</a>
+                                    @elseif(Auth::user()->role === 'student')
+                                        @if(isset($studentEnrollmentsByCourse[$course->id]))
+                                            @if($studentEnrollmentsByCourse[$course->id] === 'waiting')
+                                                <button type="button" class="btn btn-warning w-100 btn-sm" disabled>Zgłoszenie oczekuje</button>
+                                            @elseif(in_array($studentEnrollmentsByCourse[$course->id], ['in_progress', 'completed'], true))
+                                                <button type="button" class="btn btn-success w-100 btn-sm" disabled>Jesteś już zapisany</button>
+                                            @else
+                                                <button type="button" class="btn btn-secondary w-100 btn-sm" disabled>Zapis archiwalny</button>
+                                            @endif
+                                        @elseif(in_array($course->category, $blockedCategories, true))
+                                            <button type="button" class="btn btn-outline-secondary w-100 btn-sm" disabled>Masz już kurs Kat. {{ $course->category }}</button>
+                                        @else
+                                            <button type="button" class="btn btn-outline-primary w-100 btn-sm" data-bs-toggle="modal" data-bs-target="#enrollModal" data-course-id="{{ $course->id }}" data-course-name="{{ $course->name }}">
+                                                Zapisz się na kurs
+                                            </button>
+                                        @endif
+                                    @endguest
                                 </div>
                             </div>
                         </div>
@@ -146,4 +175,6 @@
             </div>
         </div>
     </section>
+
+    @include('public.partials.enroll-modal')
 @endsection

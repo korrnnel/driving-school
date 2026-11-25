@@ -65,13 +65,13 @@
         </div>
     </div>
 
-    <script>
+   <script>
         document.addEventListener('DOMContentLoaded', function() {
             const categorySelect = document.getElementById('category');
             const theoryInput = document.getElementById('required_theory_hours');
             const practiceInput = document.getElementById('required_practice_hours');
 
-            function updateMinHours() {
+            function updateMinHours(setDefaults) {
                 const category = categorySelect.value;
                 let minTheory = 30;
                 let minPractice = 30;
@@ -85,16 +85,16 @@
                 theoryInput.min = minTheory;
                 practiceInput.min = minPractice;
 
-                if (theoryInput.value && parseInt(theoryInput.value) < minTheory) {
+                if (setDefaults) {
                     theoryInput.value = minTheory;
-                }
-                if (practiceInput.value && parseInt(practiceInput.value) < minPractice) {
                     practiceInput.value = minPractice;
                 }
             }
 
-            categorySelect.addEventListener('change', updateMinHours);
-            updateMinHours();
+            categorySelect.addEventListener('change', function() {
+                updateMinHours(true);
+            });
+            updateMinHours(false);
         });
     </script>
 </x-app-layout>
