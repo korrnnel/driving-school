@@ -33,6 +33,7 @@
                     <span>Panel Kursanta</span>
                 </h6>
                 <li class="nav-item mb-1"><a class="nav-link {{ request()->routeIs('student.results.*') ? 'active text-primary fw-bold' : 'text-dark' }}" href="{{ route('student.results.index') }}">Moje wyniki i historia</a></li>
+                <li class="nav-item mb-1"><a class="nav-link {{ request()->routeIs('student.lessons.*') ? 'active text-primary fw-bold' : 'text-dark' }}" href="{{ route('student.lessons.create') }}">Umawianie jazd</a></li>
             @endif
         </ul>
     </div>

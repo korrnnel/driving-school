@@ -13,6 +13,7 @@ use App\Http\Controllers\Instructor\LessonController as InstructorLessonControll
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\Student\EnrollmentController as StudentEnrollmentController;
 use App\Http\Controllers\Student\ResultController;
+use App\Http\Controllers\Student\LessonController as StudentLessonController;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsInstructor;
 use App\Http\Middleware\IsStudent;
@@ -53,6 +54,8 @@ Route::middleware(['auth', IsInstructor::class])->prefix('instructor')->name('in
 Route::middleware(['auth', IsStudent::class])->prefix('student')->name('student.')->group(function () {
     Route::get('/results', [ResultController::class, 'index'])->name('results.index');
     Route::post('/enrollments', [StudentEnrollmentController::class, 'store'])->name('enrollments.store');
+    Route::get('/lessons/book', [StudentLessonController::class, 'create'])->name('lessons.create');
+    Route::post('/lessons/book', [StudentLessonController::class, 'store'])->name('lessons.store');
 });
 
 require __DIR__.'/auth.php';
