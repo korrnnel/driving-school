@@ -20,7 +20,7 @@ class UpdateEnrollmentRequest extends FormRequest
         return [
             'user_id' => ['required', 'exists:users,id'],
             'course_id' => ['required', 'exists:courses,id'],
-            'pkk_number' => ['nullable', 'string', 'max:20'],
+            'pkk_number' => ['nullable', 'string', 'max:20', 'regex:/^[0-9]+$/'],
             'status' => ['required', 'in:waiting,in_progress,completed,dropped,cancelled'],
             'enrolled_at' => ['required', 'date'],
             'theory_completed_at' => ['nullable', 'date', 'after_or_equal:enrolled_at'],
@@ -80,6 +80,7 @@ class UpdateEnrollmentRequest extends FormRequest
         return [
             'theory_completed_at.after_or_equal' => 'Data ukończenia teorii nie może być wcześniejsza niż data zapisu na kurs.',
             'practice_completed_at.after_or_equal' => 'Data ukończenia praktyki nie może być wcześniejsza niż data ukończenia teorii.',
+            'pkk_number.regex' => 'Numer PKK może składać się wyłącznie z cyfr.',
         ];
     }
 }

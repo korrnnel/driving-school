@@ -21,9 +21,11 @@ class StoreEnrollmentRequest extends FormRequest
     {
         return [
             'course_id' => ['required', 'integer', Rule::exists('courses', 'id')->whereNull('deleted_at')],
-            'pkk_number' => ['nullable', 'string', 'max:20'],
+            'pkk_number' => ['nullable', 'string', 'max:20', 'regex:/^[0-9]+$/'],
         ];
     }
+
+
 
     public function after(): array
     {
@@ -58,6 +60,12 @@ class StoreEnrollmentRequest extends FormRequest
                     $validator->errors()->add('course_id', "Masz już oczekujące, aktywne lub ukończone szkolenie kategorii {$course->category}.");
                 }
             }
+        ];
+    }
+    public function messages(): array
+    {
+        return [
+            'pkk_number.regex' => 'Numer PKK może składać się wyłącznie z cyfr.',
         ];
     }
 }

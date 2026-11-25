@@ -18,7 +18,7 @@
 
                         <div class="mb-3">
                             <label for="modal_pkk_number" class="form-label">Numer PKK (opcjonalnie)</label>
-                            <input type="text" class="form-control" id="modal_pkk_number" name="pkk_number" maxlength="20" placeholder="20-cyfrowy numer PKK">
+                            <input type="text" class="form-control" id="modal_pkk_number" name="pkk_number" maxlength="20" pattern="[0-9]+" inputmode="numeric" title="Numer PKK może składać się wyłącznie z cyfr." placeholder="20-cyfrowy numer PKK">
                             <div class="form-text">Jeśli jeszcze nie masz numeru PKK, zostaw to pole puste i dostarcz go później do biura.</div>
                         </div>
 

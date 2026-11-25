@@ -55,7 +55,7 @@
 
                     <div class="col-md-6 mt-3 mt-md-0">
                         <label for="pkk_number" class="form-label">Numer PKK</label>
-                        <input type="text" class="form-control @error('pkk_number') is-invalid @enderror" id="pkk_number" name="pkk_number" value="{{ old('pkk_number', $enrollment->pkk_number) }}" maxlength="20">
+                        <input type="text" class="form-control @error('pkk_number') is-invalid @enderror" id="pkk_number" name="pkk_number" value="{{ old('pkk_number', $enrollment->pkk_number) }}" maxlength="20" pattern="[0-9]+" inputmode="numeric" title="Numer PKK może składać się wyłącznie z cyfr.">
                         @error('pkk_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
