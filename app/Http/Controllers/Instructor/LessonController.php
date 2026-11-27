@@ -9,18 +9,48 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
 
 class LessonController extends Controller
 {
-    public function index(): View
+   public function index(Request $request): View
     {
-        $lessons = Lesson::with(['enrollment.user', 'vehicle'])
-            ->where('instructor_id', Auth::id())
-            ->orderBy('date', 'desc')
-            ->orderBy('start_time', 'desc')
-            ->paginate(15);
+        $search = trim((string) $request->query('search', ''));
+        $status = in_array($request->query('status'), ['scheduled', 'completed', 'no_show', 'cancelled'], true)
+            ? $request->query('status')
+            : null;
+        $date = $request->filled('date') ? (string) $request->query('date') : null;
 
-        return view('instructor.lessons.index', compact('lessons'));
+        $query = Lesson::with(['enrollment.user', 'vehicle'])
+            ->where('instructor_id', Auth::id());
+
+        if ($search !== '') {
+            $query->whereHas('enrollment.user', function ($uq) use ($search) {
+                $uq->where('name', 'like', "%{$search}%")
+                   ->orWhere('surname', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($date) {
+            $query->where('date', $date);
+        }
+
+        $lessons = $query->orderBy('date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        $lessons->getCollection()->transform(function ($lesson) {
+            $lessonStart = Carbon::parse($lesson->date->format('Y-m-d') . ' ' . $lesson->start_time);
+            $lesson->can_evaluate = !(now()->lt($lessonStart) && $lesson->status === 'scheduled');
+            return $lesson;
+        });
+
+        return view('instructor.lessons.index', compact('lessons', 'search', 'status', 'date'));
     }
 
     public function evaluate(Lesson $lesson)

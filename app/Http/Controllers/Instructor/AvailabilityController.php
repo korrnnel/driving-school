@@ -8,17 +8,32 @@ use App\Http\Requests\Instructor\StoreAvailabilityRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class AvailabilityController extends Controller
 {
-    public function index(): View
+  public function index(Request $request): View
     {
-        $availabilities = InstructorAvailability::where('instructor_id', Auth::id())
-            ->orderBy('date', 'desc')
-            ->orderBy('start_time', 'asc')
-            ->paginate(15);
+        $date = $request->filled('date') ? (string) $request->query('date') : null;
+        $upcoming = $request->boolean('upcoming');
 
-        return view('instructor.availability.index', compact('availabilities'));
+        $query = InstructorAvailability::where('instructor_id', Auth::id());
+
+        if ($date) {
+            $query->where('date', $date);
+        }
+
+        if ($upcoming) {
+            $query->where('date', '>=', Carbon::today()->toDateString());
+        }
+
+        $availabilities = $query->orderBy('date', $upcoming ? 'asc' : 'desc')
+            ->orderBy('start_time', 'asc')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('instructor.availability.index', compact('availabilities', 'date', 'upcoming'));
     }
 
     public function store(StoreAvailabilityRequest $request): RedirectResponse

@@ -10,18 +10,48 @@ use App\Http\Requests\StoreExamRequest;
 use App\Http\Requests\UpdateExamRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
 
 class ExamController extends Controller
 {
-    public function index(): View
+   public function index(Request $request): View
     {
-        $exams = Exam::with(['enrollment.user', 'enrollment.course', 'instructor'])
-            ->orderBy('date', 'desc')
-            ->paginate(15);
+        $search = trim((string) $request->query('search', ''));
+        $type = in_array($request->query('type'), ['internal', 'state'], true)
+            ? $request->query('type')
+            : null;
+        $category = in_array($request->query('category'), ['theory', 'practice'], true)
+            ? $request->query('category')
+            : null;
+        $result = in_array($request->query('result'), ['passed', 'failed'], true)
+            ? $request->query('result')
+            : null;
 
-        return view('admin.exams.index', compact('exams'));
+        $query = Exam::with(['enrollment.user', 'enrollment.course', 'instructor']);
+
+        if ($search !== '') {
+            $query->whereHas('enrollment.user', function ($uq) use ($search) {
+                $uq->where('name', 'like', "%{$search}%")
+                   ->orWhere('surname', 'like', "%{$search}%");
+            });
+        }
+
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        if ($result) {
+            $query->where('result', $result);
+        }
+
+        $exams = $query->orderBy('date', 'desc')->paginate(15)->withQueryString();
+
+        return view('admin.exams.index', compact('exams', 'search', 'type', 'category', 'result'));
     }
-
     public function create(): View
     {
 

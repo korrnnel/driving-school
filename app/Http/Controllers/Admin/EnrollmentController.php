@@ -15,10 +15,14 @@ use Illuminate\View\View;
 
 class EnrollmentController extends Controller
 {
-    public function index(Request $request): View
+   public function index(Request $request): View
     {
         $status = in_array($request->query('status'), ['waiting', 'in_progress', 'completed', 'dropped', 'cancelled'], true)
             ? $request->query('status')
+            : null;
+        $search = trim((string) $request->query('search', ''));
+        $category = in_array($request->query('category'), ['A', 'B', 'C'], true)
+            ? $request->query('category')
             : null;
 
         $query = Enrollment::with(['user', 'course']);
@@ -27,10 +31,26 @@ class EnrollmentController extends Controller
             $query->where('status', $status);
         }
 
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('pkk_number', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('surname', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($category) {
+            $query->whereHas('course', function ($cq) use ($category) {
+                $cq->where('category', $category);
+            });
+        }
+
         $enrollments = $query->latest()->paginate(10)->withQueryString();
         $waitingCount = Enrollment::where('status', 'waiting')->count();
 
-        return view('admin.enrollments.index', compact('enrollments', 'status', 'waitingCount'));
+        return view('admin.enrollments.index', compact('enrollments', 'status', 'search', 'category', 'waitingCount'));
     }
 
     public function create(): View

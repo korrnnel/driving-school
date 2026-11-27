@@ -10,13 +10,35 @@ use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    public function index()
+   public function index(Request $request)
     {
-        $users = User::with('assignedVehicle')->latest()->paginate(10);
-        return view('admin.users.index', compact('users'));
+        $search = trim((string) $request->query('search', ''));
+        $role = in_array($request->query('role'), ['admin', 'instructor', 'student'], true)
+            ? $request->query('role')
+            : null;
+
+        $query = User::with('assignedVehicle');
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('surname', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($role) {
+            $query->where('role', $role);
+        }
+
+        $users = $query->latest()->paginate(10)->withQueryString();
+
+        return view('admin.users.index', compact('users', 'search', 'role'));
     }
 
     public function create()

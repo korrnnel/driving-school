@@ -9,17 +9,33 @@ use App\Http\Requests\StoreInstructorAvailabilityRequest;
 use App\Http\Requests\UpdateInstructorAvailabilityRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
 
 class InstructorAvailabilityController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $availabilities = InstructorAvailability::with('instructor')
-            ->orderBy('date', 'desc')
-            ->orderBy('start_time', 'asc')
-            ->paginate(15);
+        $instructorId = $request->filled('instructor_id') ? (int) $request->query('instructor_id') : null;
+        $date = $request->filled('date') ? (string) $request->query('date') : null;
 
-        return view('admin.instructor-availabilities.index', compact('availabilities'));
+        $query = InstructorAvailability::with('instructor');
+
+        if ($instructorId) {
+            $query->where('instructor_id', $instructorId);
+        }
+
+        if ($date) {
+            $query->where('date', $date);
+        }
+
+        $availabilities = $query->orderBy('date', 'desc')
+            ->orderBy('start_time', 'asc')
+            ->paginate(15)
+            ->withQueryString();
+
+        $instructors = User::where('role', 'instructor')->orderBy('surname')->get();
+
+        return view('admin.instructor-availabilities.index', compact('availabilities', 'instructors', 'instructorId', 'date'));
     }
 
     public function create(): View

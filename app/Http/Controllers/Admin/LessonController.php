@@ -11,19 +11,55 @@ use App\Http\Requests\StoreLessonRequest;
 use App\Http\Requests\UpdateLessonRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
 
 class LessonController extends Controller
 {
-    public function index(): View
+  public function index(Request $request): View
     {
-        $lessons = Lesson::with(['enrollment.user', 'instructor', 'vehicle'])
-            ->orderBy('date', 'desc')
+        $search = trim((string) $request->query('search', ''));
+        $instructorId = $request->filled('instructor_id') ? (int) $request->query('instructor_id') : null;
+        $status = in_array($request->query('status'), ['scheduled', 'completed', 'no_show', 'cancelled'], true)
+            ? $request->query('status')
+            : null;
+        $date = $request->filled('date') ? (string) $request->query('date') : null;
+
+        $query = Lesson::with(['enrollment.user', 'instructor', 'vehicle']);
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('enrollment.user', function ($uq) use ($search) {
+                    $uq->where('name', 'like', "%{$search}%")
+                       ->orWhere('surname', 'like', "%{$search}%");
+                })->orWhereHas('vehicle', function ($vq) use ($search) {
+                    $vq->where('registration_number', 'like', "%{$search}%")
+                       ->orWhere('brand', 'like', "%{$search}%")
+                       ->orWhere('model', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        if ($instructorId) {
+            $query->where('instructor_id', $instructorId);
+        }
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        if ($date) {
+            $query->where('date', $date);
+        }
+
+        $lessons = $query->orderBy('date', 'desc')
             ->orderBy('start_time', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('admin.lessons.index', compact('lessons'));
+        $instructors = User::where('role', 'instructor')->orderBy('surname')->get();
+
+        return view('admin.lessons.index', compact('lessons', 'instructors', 'search', 'instructorId', 'status', 'date'));
     }
-
     public function create(): View
     {
         $enrollments = Enrollment::where(function($q) {

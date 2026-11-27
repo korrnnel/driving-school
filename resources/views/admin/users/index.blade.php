@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h2 class="h4 mb-0">Zarządzanie Użytkownikami</h2>
             <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
                 + Dodaj użytkownika
@@ -21,6 +21,32 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form action="{{ route('admin.users.index') }}" method="GET" class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label for="search" class="form-label small text-muted mb-1">Szukaj (imię, nazwisko, e-mail, telefon)</label>
+                    <input type="text" class="form-control form-control-sm" id="search" name="search" value="{{ $search }}" placeholder="Wpisz frazę...">
+                </div>
+                <div class="col-md-3">
+                    <label for="role" class="form-label small text-muted mb-1">Rola</label>
+                    <select class="form-select form-select-sm" id="role" name="role">
+                        <option value="">Wszystkie role</option>
+                        <option value="admin" {{ $role === 'admin' ? 'selected' : '' }}>Administrator</option>
+                        <option value="instructor" {{ $role === 'instructor' ? 'selected' : '' }}>Instruktor</option>
+                        <option value="student" {{ $role === 'student' ? 'selected' : '' }}>Kursant</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm">Filtruj</button>
+                    @if($search !== '' || $role)
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm">Wyczyść</a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="card shadow-sm">
         <div class="card-body p-0">
@@ -46,18 +72,15 @@
                                     <small class="text-muted">{{ $user->phone }}</small>
                                 </td>
                                 <td>
-                                    <span
-                                        class="badge {{ $user->role === 'admin' ? 'bg-danger' : ($user->role === 'instructor' ? 'bg-primary' : 'bg-success') }}">
+                                    <span class="badge {{ $user->role === 'admin' ? 'bg-danger' : ($user->role === 'instructor' ? 'bg-primary' : 'bg-success') }}">
                                         {{ $user->role_translated }}
                                     </span>
                                 </td>
                                 <td>
-                                    @if ($user->role === 'instructor')
-                                        <div>Upraw: <span class="font-monospace">{{ $user->license_number }}</span>
-                                        </div>
-                                        @if ($user->assignedVehicle)
-                                            <small class="text-muted">Pojazd:
-                                                {{ $user->assignedVehicle->registration_number }}</small>
+                                    @if($user->role === 'instructor')
+                                        <div>Upraw: <span class="font-monospace">{{ $user->license_number }}</span></div>
+                                        @if($user->assignedVehicle)
+                                            <small class="text-muted">Auto: {{ $user->assignedVehicle->registration_number }}</small>
                                         @else
                                             <small class="text-danger">Brak pojazdu</small>
                                         @endif
@@ -66,22 +89,18 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.users.edit', $user) }}"
-                                        class="btn btn-sm btn-outline-primary">Edytuj</a>
+                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">Edytuj</a>
 
-                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                                        class="d-inline-block"
-                                        onsubmit="return confirm('Czy na pewno chcesz usunąć tego użytkownika?');">
+                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline-block" onsubmit="return confirm('Czy na pewno chcesz usunąć tego użytkownika?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                            {{ auth()->id() === $user->id ? 'disabled' : '' }}>Usuń</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" {{ \Illuminate\Support\Facades\Auth::id() === $user->id ? 'disabled' : '' }}>Usuń</button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">Brak użytkowników w bazie danych.</td>
+                                <td colspan="6" class="text-center py-4">Brak użytkowników spełniających kryteria.</td>
                             </tr>
                         @endforelse
                     </tbody>

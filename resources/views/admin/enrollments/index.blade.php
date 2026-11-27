@@ -23,17 +23,46 @@
     @endif
 
     <div class="d-flex flex-wrap gap-2 mb-3">
-        <a href="{{ route('admin.enrollments.index') }}" class="btn btn-sm {{ $status === null ? 'btn-dark' : 'btn-outline-dark' }}">Wszystkie</a>
-        <a href="{{ route('admin.enrollments.index', ['status' => 'waiting']) }}" class="btn btn-sm {{ $status === 'waiting' ? 'btn-warning text-dark fw-semibold' : 'btn-outline-warning text-dark' }}">
+        <a href="{{ route('admin.enrollments.index', array_filter(['search' => $search, 'category' => $category])) }}" class="btn btn-sm {{ $status === null ? 'btn-dark' : 'btn-outline-dark' }}">Wszystkie</a>
+        <a href="{{ route('admin.enrollments.index', array_filter(['status' => 'waiting', 'search' => $search, 'category' => $category])) }}" class="btn btn-sm {{ $status === 'waiting' ? 'btn-warning text-dark fw-semibold' : 'btn-outline-warning text-dark' }}">
             Oczekujące
             @if($waitingCount > 0)
                 <span class="badge bg-danger ms-1">{{ $waitingCount }}</span>
             @endif
         </a>
-        <a href="{{ route('admin.enrollments.index', ['status' => 'in_progress']) }}" class="btn btn-sm {{ $status === 'in_progress' ? 'btn-primary' : 'btn-outline-primary' }}">W trakcie</a>
-        <a href="{{ route('admin.enrollments.index', ['status' => 'completed']) }}" class="btn btn-sm {{ $status === 'completed' ? 'btn-success' : 'btn-outline-success' }}">Ukończone</a>
-        <a href="{{ route('admin.enrollments.index', ['status' => 'dropped']) }}" class="btn btn-sm {{ $status === 'dropped' ? 'btn-secondary' : 'btn-outline-secondary' }}">Przerwane</a>
-        <a href="{{ route('admin.enrollments.index', ['status' => 'cancelled']) }}" class="btn btn-sm {{ $status === 'cancelled' ? 'btn-danger' : 'btn-outline-danger' }}">Anulowane</a>
+        <a href="{{ route('admin.enrollments.index', array_filter(['status' => 'in_progress', 'search' => $search, 'category' => $category])) }}" class="btn btn-sm {{ $status === 'in_progress' ? 'btn-primary' : 'btn-outline-primary' }}">W trakcie</a>
+        <a href="{{ route('admin.enrollments.index', array_filter(['status' => 'completed', 'search' => $search, 'category' => $category])) }}" class="btn btn-sm {{ $status === 'completed' ? 'btn-success' : 'btn-outline-success' }}">Ukończone</a>
+        <a href="{{ route('admin.enrollments.index', array_filter(['status' => 'dropped', 'search' => $search, 'category' => $category])) }}" class="btn btn-sm {{ $status === 'dropped' ? 'btn-secondary' : 'btn-outline-secondary' }}">Przerwane</a>
+        <a href="{{ route('admin.enrollments.index', array_filter(['status' => 'cancelled', 'search' => $search, 'category' => $category])) }}" class="btn btn-sm {{ $status === 'cancelled' ? 'btn-danger' : 'btn-outline-danger' }}">Anulowane</a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form action="{{ route('admin.enrollments.index') }}" method="GET" class="row g-2 align-items-end">
+                @if($status)
+                    <input type="hidden" name="status" value="{{ $status }}">
+                @endif
+                <div class="col-md-5">
+                    <label for="search" class="form-label small text-muted mb-1">Szukaj (kursant lub nr PKK)</label>
+                    <input type="text" class="form-control form-control-sm" id="search" name="search" value="{{ $search }}" placeholder="Nazwisko lub PKK...">
+                </div>
+                <div class="col-md-3">
+                    <label for="category" class="form-label small text-muted mb-1">Kategoria kursu</label>
+                    <select class="form-select form-select-sm" id="category" name="category">
+                        <option value="">Wszystkie kategorie</option>
+                        <option value="A" {{ $category === 'A' ? 'selected' : '' }}>Kategoria A</option>
+                        <option value="B" {{ $category === 'B' ? 'selected' : '' }}>Kategoria B</option>
+                        <option value="C" {{ $category === 'C' ? 'selected' : '' }}>Kategoria C</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm">Filtruj</button>
+                    @if($search !== '' || $category || $status)
+                        <a href="{{ route('admin.enrollments.index') }}" class="btn btn-outline-secondary btn-sm">Wyczyść</a>
+                    @endif
+                </div>
+            </form>
+        </div>
     </div>
 
     <div class="card shadow-sm">
@@ -100,7 +129,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-4">Brak zapisów w bazie danych.</td>
+                                <td colspan="8" class="text-center py-4">Brak zapisów spełniających kryteria.</td>
                             </tr>
                         @endforelse
                     </tbody>

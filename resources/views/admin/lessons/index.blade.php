@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h2 class="h4 mb-0">Zarządzanie Jazdami</h2>
             <a href="{{ route('admin.lessons.create') }}" class="btn btn-primary btn-sm">
                 + Zaplanuj jazdę
@@ -14,6 +14,48 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form action="{{ route('admin.lessons.index') }}" method="GET" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label for="search" class="form-label small text-muted mb-1">Szukaj (kursant lub pojazd)</label>
+                    <input type="text" class="form-control form-control-sm" id="search" name="search" value="{{ $search }}" placeholder="Nazwisko lub tablica...">
+                </div>
+                <div class="col-md-3">
+                    <label for="instructor_id" class="form-label small text-muted mb-1">Instruktor</label>
+                    <select class="form-select form-select-sm" id="instructor_id" name="instructor_id">
+                        <option value="">Wszyscy instruktorzy</option>
+                        @foreach($instructors as $instructor)
+                            <option value="{{ $instructor->id }}" {{ $instructorId === $instructor->id ? 'selected' : '' }}>
+                                {{ $instructor->surname }} {{ $instructor->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="status" class="form-label small text-muted mb-1">Status</label>
+                    <select class="form-select form-select-sm" id="status" name="status">
+                        <option value="">Wszystkie</option>
+                        <option value="scheduled" {{ $status === 'scheduled' ? 'selected' : '' }}>Zaplanowana</option>
+                        <option value="completed" {{ $status === 'completed' ? 'selected' : '' }}>Zakończona</option>
+                        <option value="no_show" {{ $status === 'no_show' ? 'selected' : '' }}>Nieobecność</option>
+                        <option value="cancelled" {{ $status === 'cancelled' ? 'selected' : '' }}>Odwołana</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="date" class="form-label small text-muted mb-1">Data</label>
+                    <input type="date" class="form-control form-control-sm" id="date" name="date" value="{{ $date }}">
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm">Filtruj</button>
+                    @if($search !== '' || $instructorId || $status || $date)
+                        <a href="{{ route('admin.lessons.index') }}" class="btn btn-outline-secondary btn-sm">Wyczyść</a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="card shadow-sm">
         <div class="card-body p-0">
@@ -67,7 +109,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">Brak zaplanowanych jazd w bazie danych.</td>
+                                <td colspan="6" class="text-center py-4">Brak jazd spełniających kryteria.</td>
                             </tr>
                         @endforelse
                     </tbody>

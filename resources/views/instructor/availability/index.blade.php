@@ -41,6 +41,29 @@
         </div>
 
         <div class="col-md-8">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <form action="{{ route('instructor.availability.index') }}" method="GET" class="row g-2 align-items-end">
+                        <div class="col-sm-4">
+                            <label for="filter_date" class="form-label small text-muted mb-1">Data</label>
+                            <input type="date" class="form-control form-control-sm" id="filter_date" name="date" value="{{ $date }}">
+                        </div>
+                        <div class="col-sm-4 pb-1">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="upcoming" name="upcoming" value="1" {{ $upcoming ? 'checked' : '' }}>
+                                <label class="form-check-label small" for="upcoming">Tylko nadchodzące</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Filtruj</button>
+                            @if($date || $upcoming)
+                                <a href="{{ route('instructor.availability.index') }}" class="btn btn-outline-secondary btn-sm">Wyczyść</a>
+                            @endif
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="card shadow-sm">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -67,7 +90,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center py-4">Twój grafik jest pusty.</td>
+                                        <td colspan="3" class="text-center py-4">Brak wpisów w grafiku spełniających kryteria.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

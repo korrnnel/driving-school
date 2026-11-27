@@ -17,6 +17,37 @@
         </div>
     @endif
 
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form action="{{ route('instructor.lessons.index') }}" method="GET" class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label for="search" class="form-label small text-muted mb-1">Szukaj kursanta</label>
+                    <input type="text" class="form-control form-control-sm" id="search" name="search" value="{{ $search }}" placeholder="Imię lub nazwisko...">
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label small text-muted mb-1">Status</label>
+                    <select class="form-select form-select-sm" id="status" name="status">
+                        <option value="">Wszystkie</option>
+                        <option value="scheduled" {{ $status === 'scheduled' ? 'selected' : '' }}>Zaplanowana</option>
+                        <option value="completed" {{ $status === 'completed' ? 'selected' : '' }}>Zakończona</option>
+                        <option value="no_show" {{ $status === 'no_show' ? 'selected' : '' }}>Nieobecność</option>
+                        <option value="cancelled" {{ $status === 'cancelled' ? 'selected' : '' }}>Odwołana</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="date" class="form-label small text-muted mb-1">Data</label>
+                    <input type="date" class="form-control form-control-sm" id="date" name="date" value="{{ $date }}">
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm">Filtruj</button>
+                    @if($search !== '' || $status || $date)
+                        <a href="{{ route('instructor.lessons.index') }}" class="btn btn-outline-secondary btn-sm">Wyczyść</a>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -51,11 +82,7 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    @php
-                                        $lessonStart = \Carbon\Carbon::parse($lesson->date->format('Y-m-d') . ' ' . $lesson->start_time);
-                                    @endphp
-
-                                    @if(now()->lt($lessonStart) && $lesson->status === 'scheduled')
+                                    @if(!$lesson->can_evaluate)
                                         <span class="text-muted small px-2">Dostępne po rozpoczęciu</span>
                                     @else
                                         <a href="{{ route('instructor.lessons.evaluate', $lesson) }}" class="btn btn-sm btn-primary">
@@ -66,7 +93,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center py-4">Brak przypisanych jazd.</td>
+                                <td colspan="4" class="text-center py-4">Brak jazd spełniających kryteria.</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -6,15 +6,33 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Http\Requests\StoreCourseRequest;
 use App\Http\Requests\UpdateCourseRequest;
+use Illuminate\Http\Request;
 
 class CourseController extends Controller
 {
-    public function index()
+  public function index(Request $request)
     {
-        $courses = Course::latest()->paginate(10);
-        return view('admin.courses.index', compact('courses'));
-    }
+        $category = in_array($request->query('category'), ['A', 'B', 'C'], true)
+            ? $request->query('category')
+            : null;
+        $type = in_array($request->query('type'), ['standard', 'accelerated', 'weekend'], true)
+            ? $request->query('type')
+            : null;
 
+        $query = Course::query();
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        $courses = $query->latest()->paginate(10)->withQueryString();
+
+        return view('admin.courses.index', compact('courses', 'category', 'type'));
+    }
     public function create()
     {
         return view('admin.courses.create');
